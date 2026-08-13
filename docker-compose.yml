@@ -9,6 +9,8 @@ services:
       - BLOGGER_BLOG_ID=${BLOGGER_BLOG_ID}
       - GCP_PROJECT_ID=${GCP_PROJECT_ID}
       - BQ_DATASET=${BQ_DATASET}
+      - AUTO_INGEST_HOURS=${AUTO_INGEST_HOURS:-6}
+      - ENABLE_AUTO_INGEST=${ENABLE_AUTO_INGEST:-true}
       - PORT=3001
     ports:
       - "3001:3001"
