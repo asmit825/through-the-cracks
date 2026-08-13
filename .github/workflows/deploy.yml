@@ -37,6 +37,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -45,10 +48,12 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Deploy to Cloud Run
+      - name: Deploy to Cloud Run with Doppler Secrets Injection
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         run: |
-          gcloud run deploy through-the-cracks \
+          doppler run -- gcloud run deploy through-the-cracks \
             --source . \
             --region us-central1 \
             --allow-unauthenticated \
-            --set-env-vars "GCP_PROJECT_ID=through-the-cracks,BQ_DATASET=through_the_cracks,BLOGGER_BLOG_ID=3469042462299367694,BLOGGER_API_KEY=${{ secrets.BLOGGER_API_KEY }},AUTO_INGEST_HOURS=6,ENABLE_AUTO_INGEST=true"
+            --set-env-vars "GCP_PROJECT_ID=$GCP_PROJECT_ID,BQ_DATASET=$BQ_DATASET,BLOGGER_BLOG_ID=$BLOGGER_BLOG_ID,BLOGGER_API_KEY=$BLOGGER_API_KEY,AUTO_INGEST_HOURS=$AUTO_INGEST_HOURS,ENABLE_AUTO_INGEST=$ENABLE_AUTO_INGEST"
