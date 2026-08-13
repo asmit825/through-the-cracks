@@ -19,6 +19,7 @@ node_modules/
 # GCP Service Account & Credentials Keys
 *service-account*.json
 *credentials*.json
+sa-key.json
 *.pem
 *.key
 *.p12

@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: Lint & Build Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Linter
+        run: npm run lint
+
+      - name: Build Docker Container
+        run: docker build -t through-the-cracks .
+
+  deploy:
+    name: Deploy to Google Cloud Run
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy through-the-cracks \
+            --source . \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --set-env-vars "GCP_PROJECT_ID=through-the-cracks,BQ_DATASET=through_the_cracks,BLOGGER_BLOG_ID=3469042462299367694,BLOGGER_API_KEY=${{ secrets.BLOGGER_API_KEY }},AUTO_INGEST_HOURS=6,ENABLE_AUTO_INGEST=true"
