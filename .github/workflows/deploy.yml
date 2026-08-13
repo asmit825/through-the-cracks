@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate:
-    name: Lint & Build Test
+    name: Lint, Security & Build Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -25,8 +25,22 @@ jobs:
       - name: Run Linter
         run: npm run lint
 
+      - name: Snyk Dependency Vulnerability Scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
       - name: Build Docker Container
         run: docker build -t through-the-cracks .
+
+      - name: Snyk Container Image Scan
+        uses: snyk/actions/docker@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: through-the-cracks
 
   deploy:
     name: Deploy to Google Cloud Run
